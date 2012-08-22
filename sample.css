@@ -1,0 +1,45 @@
+/* this is a comment! */
+@import url("fineprint.css") print;
+
+div {
+  float: left;
+}
+
+div.superdiv {
+  float:right;
+}
+
+.classname 
+.another-thing {
+  float: left;
+}
+
+#idname {
+  float: left;
+  width: 50px;
+  height: 50px
+}
+
+.classname .some-other-classname {
+  float: none;
+}
+
+#idname.classname{
+  float: left;
+}
+
+#whatever:after {
+
+}
+
+#whowroteme { float:left; text-align:right;}
+
+@media screen{
+  #whatever {
+    float:left;
+  }
+  
+  .classname {
+    float: right;
+  }
+}
