@@ -4,7 +4,8 @@ var tokens = {
   atStart: '@',
   semicolon: ';',
   idPrefix: '#',
-  classPrefix: '.'
+  classPrefix: '.',
+  comma: ','
 };
 
 exports.tokens = tokens;

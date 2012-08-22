@@ -1,4 +1,5 @@
-/* this is a comment! */
+/* this is a comment! */ 
+
 @import url("fineprint.css") print;
 
 div {
@@ -12,6 +13,11 @@ div.superdiv {
 .classname 
 .another-thing {
   float: left;
+}
+
+.selector-one #what,
+.selector-two #what {
+  display: none;
 }
 
 #idname {

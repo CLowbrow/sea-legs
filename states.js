@@ -114,6 +114,9 @@ var states = {
       } else if (token === tokens.openBrace){
         lexer.emit('selector');
         return states.parseOpenBrace;
+      } else if (token === tokens.comma){
+        lexer.emit('selector');
+        return states.parseComma;
       } else if (token === ' ' && lexer.start === lexer.pos) {
         //lexer.start++;
       }
@@ -143,6 +146,11 @@ var states = {
       if (token === '') { return undefined; }
       lexer.pos++;
     }
+  },
+  parseComma: function (lexer) {
+    lexer.pos++;
+    lexer.emit('comma');
+    return states.parseSelector;
   }
 };
 
