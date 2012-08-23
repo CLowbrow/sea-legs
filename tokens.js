@@ -7,7 +7,7 @@ var tokens = {
   idPrefix: '#',
   classPrefix: '.',
   comma: ',',
-  childSelector: '>',
+  child: '>',
   descendant: ' ',
   sibling: '+'
 };

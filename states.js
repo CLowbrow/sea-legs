@@ -129,6 +129,21 @@ var states = {
           lexer.backUp();
           lexer.emit('selector');
           return states.lexDescendant;
+        
+        case tokens.sibling:
+          lexer.backUp();
+          lexer.emit('selector');
+          return states.lexSiblingOperator;
+          
+        case tokens.child:
+          lexer.backUp();
+          lexer.emit('selector');
+          return states.lexChildOperator;
+        
+        case '/n':
+          lexer.backUp();
+          lexer.emit('selector');
+          return states.lexDescendant;
           
         case '':
           return undefined;
@@ -162,15 +177,25 @@ var states = {
   lexComma: function (lexer) {
     lexer.next();
     lexer.emit('comma');
-    return states.lexSelector;
+    return states.lexStatement;
   },
   lexDescendant: function (lexer) {
     while (true) {
       var token = lexer.next();
       //look ahead
-      if (token === tokens.openBrace || token === tokens.comma) {
+      //TODO: this is too complicated. lexDescendant should not have to invalidate itself.
+      if (token === tokens.openBrace) {
         lexer.pos = ++lexer.start;
         return states.lexOpenBrace;
+      } else if (token === tokens.comma) {
+        lexer.pos = ++lexer.start;
+        return states.lexComma;
+      } else if (token === tokens.sibling) {
+        lexer.pos = ++lexer.start;
+        return states.lexSiblingOperator;
+      } else if (token === tokens.child) {
+        lexer.pos = ++lexer.start;
+        return states.lexChildOperator;
       } else if (!isBlank(token)) {
         lexer.backUp();
         lexer.emit('descendent');
@@ -178,6 +203,16 @@ var states = {
       } 
       if (token === '') { return undefined; }
     }
+  },
+  lexChildOperator: function (lexer) {
+    lexer.next();
+    lexer.emit('childOperator');
+    return states.lexStatement;
+  },
+  lexSiblingOperator: function (lexer) {
+    lexer.next();
+    lexer.emit('siblingOperator');
+    return states.lexStatement;
   }
 };
 
