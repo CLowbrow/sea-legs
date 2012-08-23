@@ -32,16 +32,15 @@ var states = {
     while (true) {
       //TODO: clean this up. Don't need restOfString.
       var nextChar = lexer.inputArr.charAt(lexer.pos);
-      var restOfString = lexer.inputArr.substring(lexer.pos);
-      if (isPrefix(tokens.openBrace, restOfString)) {
+      if (nextChar === tokens.openBrace) {
         lexer.pos = lexer.start;
         return states.lexSelector;
-      } else if (isPrefix(tokens.atStart, restOfString)) {
+      } else if (nextChar === tokens.atStart) {
         return states.lexAt;
-      } else if (isPrefix(tokens.semicolon, restOfString)) {
+      } else if (nextChar === tokens.semicolon) {
         lexer.emit('declaration');
         return states.lexSemicolon;
-      } else if (isPrefix(tokens.closeBrace, restOfString)) {
+      } else if (nextChar === tokens.closeBrace) {
         lexer.emit('declaration');
         return states.lexCloseBrace;
       } else if (isBlank(nextChar) && lexer.start === lexer.pos){
