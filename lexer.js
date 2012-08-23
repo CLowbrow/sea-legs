@@ -20,6 +20,16 @@ var Lexer = function (emitter) {
     }
   };
   
+  lexy.next = function () {
+    var rune = lexy.inputArr.charAt(lexy.pos);
+    lexy.pos++;
+    return rune;
+  };
+  
+  lexy.backUp = function () {
+    lexy.pos--;
+  }
+  
   lexy.ignore = function () {
     lexy.start = lexy.pos;
   };
@@ -33,7 +43,7 @@ var Lexer = function (emitter) {
 
 
   var run = function () {
-    var state = states.parseStatement;
+    var state = states.lexStatement;
     while (state) {
       state = state(lexy);
     }

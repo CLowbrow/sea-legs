@@ -4,7 +4,7 @@ var tokens = require('./tokens').tokens;
 //These should go somewhere else
 
 var isBlank = function (token) {
-  if (token.match(/\s/) || token.match(/\n/)){
+  if (token.match(/\s/) || token.match(/\n/) || token.match(/\t/)){
     return true;
   } else {
     return false;
@@ -28,21 +28,22 @@ var inSet = function (needle, haystack) {
 };
 
 var states = {
-  parseStatement: function (lexer) {
+  lexStatement: function (lexer) {
     while (true) {
+      //TODO: clean this up. Don't need restOfString.
       var nextChar = lexer.inputArr.charAt(lexer.pos);
       var restOfString = lexer.inputArr.substring(lexer.pos);
       if (isPrefix(tokens.openBrace, restOfString)) {
         lexer.pos = lexer.start;
-        return states.parseSelector;
+        return states.lexSelector;
       } else if (isPrefix(tokens.atStart, restOfString)) {
-        return states.parseAt;
+        return states.lexAt;
       } else if (isPrefix(tokens.semicolon, restOfString)) {
         lexer.emit('declaration');
-        return states.parseSemicolon;
+        return states.lexSemicolon;
       } else if (isPrefix(tokens.closeBrace, restOfString)) {
         lexer.emit('declaration');
-        return states.parseCloseBrace;
+        return states.lexCloseBrace;
       } else if (isBlank(nextChar) && lexer.start === lexer.pos){
         lexer.start++;
       } 
@@ -51,106 +52,133 @@ var states = {
       lexer.pos++;
     }
   },
-  parseOpenBrace: function (lexer) {
-    lexer.pos++;
+  lexOpenBrace: function (lexer) {
+    lexer.next();
     lexer.emit('openBrace');
-    return states.parseStatement;
+    return states.lexStatement;
   },
-  parseCloseBrace: function (lexer) {
-    lexer.pos++;
+  lexCloseBrace: function (lexer) {
+    lexer.next();
     lexer.emit('closeBrace');
-    return states.parseStatement;
+    return states.lexStatement;
   },
-  parseAt: function (lexer) {
-    lexer.pos++;
+  lexAt: function (lexer) {
+    lexer.next();
     lexer.emit('@');
-    return states.parseAtRule;
+    return states.lexAtRule;
   },
-  parseAtRule: function (lexer) {
+  lexAtRule: function (lexer) {
     while (true) {
-      var token = lexer.inputArr.charAt(lexer.pos);
+      var token = lexer.next();
       
       if (token === ' '){
+        lexer.backUp();
         lexer.emit('atRule');
-        return states.parseAtBlock;
+        return states.lexAtBlock;
+      } else if (token === '') { 
+        return undefined; 
       }
-      
-      if (token === '') { return undefined; }
-      lexer.pos++;
     }
   },
-  parseAtBlock: function (lexer) {
+  lexAtBlock: function (lexer) {
     while (true) {
-      var token = lexer.inputArr.charAt(lexer.pos);
-      
-      if (token === '{'){
-        lexer.emit('atBlock');
-        return states.parseOpenBrace;
-      } else if (token === ';'){
-        lexer.emit('atBlock');
-        return states.parseSemicolon;
+      switch (lexer.next()) {
+        case tokens.semicolon:
+          lexer.backUp();
+          lexer.emit('atBlock');
+          return states.lexSemicolon;
+        
+          case tokens.openBrace:
+            lexer.backUp();
+            lexer.emit('atBlock');
+            return states.lexOpenBrace;
+        
+        case '':
+          return undefined;
       }
-      
-      if (token === '') { return undefined; }
-      lexer.pos++;
     }
   },
-  parseSemicolon: function (lexer) {
-    lexer.pos++;
+  lexSemicolon: function (lexer) {
+    lexer.next();
     lexer.emit('semicolon');
-    return states.parseStatement;
+    return states.lexStatement;
   },
-  parseSelector: function (lexer) {
+  lexSelector: function (lexer) {
     while (true) {
-      var token = lexer.inputArr.charAt(lexer.pos);
-      if(token === tokens.idPrefix){
-        lexer.emit('selector');
-        lexer.pos++;
-        return states.parseId;
-      } else if (token === tokens.classPrefix) {
-        lexer.emit('selector');
-        lexer.pos++;
-        return states.parseClass;
-      } else if (token === tokens.openBrace){
-        lexer.emit('selector');
-        return states.parseOpenBrace;
-      } else if (token === tokens.comma){
-        lexer.emit('selector');
-        return states.parseComma;
-      } else if (token === ' ' && lexer.start === lexer.pos) {
-        //lexer.start++;
+      switch (lexer.next()) {
+        case tokens.idPrefix:
+          lexer.backUp();
+          lexer.emit('selector');
+          return states.lexId;
+          
+        case tokens.classPrefix:
+          lexer.backUp();
+          lexer.emit('selector');
+          return states.lexClass;
+          
+        case tokens.openBrace:
+          lexer.backUp();
+          lexer.emit('selector');
+          return states.lexOpenBrace;
+
+        case tokens.comma:
+          lexer.backUp();
+          lexer.emit('selector');
+          return states.lexComma;
+        
+        case tokens.descendant:
+          lexer.backUp();
+          lexer.emit('selector');
+          return states.lexDescendant;
+          
+        case '':
+          return undefined;
       }
-      
-      if (token === '') { return undefined; }
-      lexer.pos++;
     }
   },
-  parseId: function (lexer) {
+  lexId: function (lexer) {
+    lexer.next();
     while (true) {
-      var token = lexer.inputArr.charAt(lexer.pos);
+      var token = lexer.next();
       if(!inSet(token.toLowerCase(), 'abcdefghijklmnopqrstuvwxyz01234567890-_')){
+        lexer.backUp();
         lexer.emit('idName');
-        return states.parseSelector;
+        return states.lexSelector;
       }
       if (token === '') { return undefined; }
-      lexer.pos++;
     }
   },
-  parseClass: function (lexer) {
+  lexClass: function (lexer) {
+    lexer.next();
     while (true) {
-      var token = lexer.inputArr.charAt(lexer.pos);
+      var token = lexer.next();
       if(!inSet(token.toLowerCase(), 'abcdefghijklmnopqrstuvwxyz01234567890-_')){
+        lexer.backUp();
         lexer.emit('className');
-        return states.parseSelector;
+        return states.lexSelector;
       }
       if (token === '') { return undefined; }
-      lexer.pos++;
     }
   },
-  parseComma: function (lexer) {
-    lexer.pos++;
+  lexComma: function (lexer) {
+    lexer.next();
     lexer.emit('comma');
-    return states.parseSelector;
+    return states.lexSelector;
+  },
+  lexDescendant: function (lexer) {
+    while (true) {
+      var token = lexer.next();
+      //look ahead
+      if (token === tokens.openBrace || token === tokens.comma) {
+        lexer.pos = ++lexer.start;
+        return states.lexOpenBrace;
+      } else if (!isBlank(token)) {
+        lexer.backUp();
+        lexer.emit('descendent');
+        return states.lexSelector;
+      } 
+      if (token === '') { return undefined; }
+    }
   }
 };
 

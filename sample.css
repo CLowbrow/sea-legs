@@ -6,7 +6,7 @@ div {
   float: left;
 }
 
-div.superdiv {
+    div.superdiv {
   float:right;
 }
 
@@ -16,7 +16,8 @@ div.superdiv {
 }
 
 .selector-one #what,
-.selector-two #what {
+.selector-two #what ,
+.selector-three #what {
   display: none;
 }
 

@@ -1,3 +1,4 @@
+//these are special tokens that are also null-tokens
 var tokens = {
   openBrace: '{',
   closeBrace: '}',
@@ -5,7 +6,13 @@ var tokens = {
   semicolon: ';',
   idPrefix: '#',
   classPrefix: '.',
-  comma: ','
+  comma: ',',
+  childSelector: '>',
+  descendant: ' ',
+  sibling: '+'
 };
 
+
+
 exports.tokens = tokens;
+
