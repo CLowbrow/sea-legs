@@ -20,6 +20,8 @@ var Lexer = function (emitter) {
     }
   };
   
+  //TODO: add accept, acceptmany, and peek.
+  
   lexy.next = function () {
     var rune = lexy.inputArr.charAt(lexy.pos);
     lexy.pos++;
@@ -28,7 +30,7 @@ var Lexer = function (emitter) {
   
   lexy.backUp = function () {
     lexy.pos--;
-  }
+  };
   
   lexy.ignore = function () {
     lexy.start = lexy.pos;

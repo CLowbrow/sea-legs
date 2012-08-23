@@ -14,11 +14,12 @@ Array.prototype.getUnique = function(){
 };
 
 var classes = [],
-    ids = [];
+    ids = [],
+    allTokens = [];
 
 var emitter = new EventEmitter();
 emitter.on('lexerToken', function (token) {
-  console.log(token);
+  allTokens.push(token);
   
   if (token.type === "className") {
     classes.push(token.value);
@@ -29,8 +30,9 @@ emitter.on('lexerToken', function (token) {
 });
 
 emitter.on('finished', function () {
-  console.log('\n\n');
-  
+  console.log('ALL');
+  console.log(allTokens);
+  console.log('\n');
   console.log('CLASSES');
   console.log(classes.getUnique().sort());
   console.log('\n');
