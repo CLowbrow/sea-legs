@@ -74,7 +74,8 @@ var states = {
         lexer.backUp();
         lexer.emit('atRule');
         return states.lexAtBlock;
-      } else if (token === '') { 
+      } else if (token === '') {
+        lexer.emit('atRule');
         return undefined; 
       }
     }

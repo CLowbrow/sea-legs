@@ -8,13 +8,21 @@ div .hello {
 
 @import url("fineprint.css") print;
 
-.one .two{
-}
+/* testing search */ 
 
+/* real 1*/
+.one .two{}
+
+/* real 2*/
 .one
-.two {
+.two {}
+  
+/* real 3*/
+.one     .two {}
+  
+/* NOT A MATCH! */
 
-}
+@import url(".one .two") print;
 
 div {
   float: left;
