@@ -32,7 +32,7 @@ var states = {
     while (true) {
       //TODO: clean this up. Don't need restOfString.
       var nextChar = lexer.inputArr.charAt(lexer.pos);
-      if (nextChar === tokens.openBrace) {
+      if (nextChar === tokens.openBrace || nextChar === '') {
         lexer.pos = lexer.start;
         return states.lexSelector;
       } else if (nextChar === tokens.atStart) {
@@ -46,7 +46,7 @@ var states = {
       } else if (isBlank(nextChar) && lexer.start === lexer.pos){
         lexer.start++;
       } 
-      if (nextChar === '') { return undefined; }
+      //if (nextChar === '') { return undefined; }
       //increment stuff
       lexer.pos++;
     }
@@ -140,7 +140,7 @@ var states = {
           lexer.emit('selector');
           return states.lexChildOperator;
         
-        case '/n':
+        case '\n':
           lexer.backUp();
           lexer.emit('selector');
           return states.lexDescendant;
@@ -159,7 +159,10 @@ var states = {
         lexer.emit('idName');
         return states.lexSelector;
       }
-      if (token === '') { return undefined; }
+      if (token === '') {
+        lexer.emit('idName');
+        return undefined; 
+      }
     }
   },
   lexClass: function (lexer) {
@@ -171,7 +174,10 @@ var states = {
         lexer.emit('className');
         return states.lexSelector;
       }
-      if (token === '') { return undefined; }
+      if (token === '') { 
+        lexer.emit('className');
+        return undefined; 
+      }
     }
   },
   lexComma: function (lexer) {
@@ -198,7 +204,7 @@ var states = {
         return states.lexChildOperator;
       } else if (!isBlank(token)) {
         lexer.backUp();
-        lexer.emit('descendent');
+        lexer.emit('descendant');
         return states.lexSelector;
       } 
       if (token === '') { return undefined; }

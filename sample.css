@@ -1,6 +1,20 @@
 /* this is a comment! */ 
 
+@import url("foo.css") print;
+
+div .hello {
+  float:left
+}
+
 @import url("fineprint.css") print;
+
+.one .two{
+}
+
+.one
+.two {
+
+}
 
 div {
   float: left;
@@ -9,6 +23,8 @@ div {
     div.superdiv {
   float:right;
 }
+
+
 
 .classname 
 .another-thing {
@@ -32,8 +48,7 @@ div {
 }
 
 .one > .two, 
-.one+.two ,
-.one .two, {
+.one+.two {
   float:left;
 }
 
