@@ -7,5 +7,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Alex Zelenskiy",
-  "license": "BSD"
+  "license": "MIT"
 }
