@@ -18,7 +18,7 @@ with filename being the file you would like to lex. If no filename is specified,
 
 ## Why not save yourself a lot of time and use a regex?
 
-(http://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454)
+[This, basically.](http://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454)
 
 ## Credits
 
