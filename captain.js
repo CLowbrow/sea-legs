@@ -50,7 +50,8 @@ var searchtime = function () {
       }
       
     }
-    console.log('matches: ' + matches);
+    console.log(matches + ' MATCHES FOUND');
+    console.log('\n----------------------\n');
   }
 };
 
@@ -108,8 +109,9 @@ if (process.argv[3] === "-s") {
     searchTokens.push(token);
   });
   semitter.on('finished', function () {
+    console.log('SEARCH STRING LEXED AS \n');
     console.log(searchTokens);
-    console.log('\n');
+    console.log('\n----------------------\n');
     searchtime();
   });
   slexer.begin(process.argv[4]);

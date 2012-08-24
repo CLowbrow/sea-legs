@@ -12,10 +12,13 @@ This is a (bad) css lexer with some helpers bolted on to the front of it that I 
 
 Run:
 
-    ./captain.js [filename [-d]]
+    ./captain.js filename [[-d]|[-s searchstring]]
 
 with filename being the file you would like to lex. If no filename is specified, captain will lex sample.css. Add -d if you want to see output of all tokens that were lexed.
 
+## Why not save yourself a lot of time and use a regex?
+
+(http://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454)
 
 ## Credits
 

@@ -46,7 +46,9 @@ var states = {
       } else if (isBlank(nextChar) && lexer.start === lexer.pos){
         lexer.start++;
       } 
-      //if (nextChar === '') { return undefined; }
+      if (nextChar === '') { 
+        return undefined; 
+      }
       //increment stuff
       lexer.pos++;
     }
@@ -147,6 +149,8 @@ var states = {
           return states.lexDescendant;
           
         case '':
+          lexer.backUp();
+          lexer.emit('selector');
           return undefined;
       }
     }

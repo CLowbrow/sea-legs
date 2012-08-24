@@ -22,7 +22,7 @@ div .hello {
   
 /* NOT A MATCH! */
 
-@import url(".one .two") print;
+@import url(" .one .two ") print;
 
 div {
   float: left;
