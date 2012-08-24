@@ -12,7 +12,7 @@ This is a (bad) css lexer with some helpers bolted on to the front of it that I 
 
 Run:
 
-  ./captain.js [filename [-d]]
+    ./captain.js [filename [-d]]
 
 with filename being the file you would like to lex. If no filename is specified, captain will lex sample.css. Add -d if you want to see output of all tokens that were lexed.
 
