@@ -1,4 +1,3 @@
-var fs = require('fs');
 var states = require('./states').states;
 
 var Lexer = function (emitter) {
@@ -54,16 +53,11 @@ var Lexer = function (emitter) {
     emitter.emit('finished');
   };
   
-  lexy.begin = function (file) {
-    fs.readFile(file, 'utf8', function (err,data) {
-      if (err) {
-        return console.log(err);
-      }
-      //Strip Comments. I am CHEATING here because comments suck.
-      data = data.replace(/(\/\*([\s\S]*?)\*\/)|(\/\/(.*)$)/gm, '');
-      lexy.inputArr = data;
-      run();
-    });
+  lexy.begin = function (string) {
+    //Strip Comments. I am CHEATING here because comments suck.
+    var data = string.replace(/(\/\*([\s\S]*?)\*\/)|(\/\/(.*)$)/gm, '');
+    lexy.inputArr = data;
+    run();
   };
   
 };

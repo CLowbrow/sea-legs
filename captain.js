@@ -1,44 +1,55 @@
+#!/usr/bin/env node
+
 var EventEmitter = require('events').EventEmitter;
 var Lexer = require('./lexer').Lexer;
+var fs = require('fs');
 
-Array.prototype.getUnique = function(){
-   var u = {}, a = [];
-   for(var i = 0, l = this.length; i < l; ++i){
-      if(u.hasOwnProperty(this[i])) {
-         continue;
-      }
-      a.push(this[i]);
-      u[this[i]] = 1;
-   }
-   return a;
-};
-
-var classes = [],
-    ids = [],
+//collections for main css file being parsed
+var classes = {},
+    ids = {},
     allTokens = [];
+
 
 var emitter = new EventEmitter();
 emitter.on('lexerToken', function (token) {
   allTokens.push(token);
   
   if (token.type === "className") {
-    classes.push(token.value);
+    if(classes.hasOwnProperty(token.value)) {
+      classes[token.value]++;
+    } else {
+      classes[token.value] = 1;
+    }
   }
   if (token.type === "idName") {
-   ids.push(token.value);
+    if(ids.hasOwnProperty(token.value)) {
+      ids[token.value]++;
+    } else {
+      ids[token.value] = 1;
+    }
   }
 });
 
 emitter.on('finished', function () {
-  console.log('ALL');
-  console.log(allTokens);
-  console.log('\n');
+  if (process.argv[3] === "-d") {
+    console.log('ALL');
+    console.log(allTokens);
+    console.log('\n');
+  }
+  
   console.log('CLASSES');
-  console.log(classes.getUnique().sort());
+  console.log(classes);
   console.log('\n');
   console.log('IDS');
-  console.log(ids.getUnique().sort());
+  console.log(ids);
 });
-var lexer = new Lexer(emitter);
-lexer.begin('sample.css');
 
+//GO GO GO!!!
+var lexer = new Lexer(emitter);
+var file = process.argv[2] || "sample.css";
+fs.readFile(file, 'utf8', function (err,data) {
+  if (err) {
+    return console.log(err);
+  }
+  lexer.begin(data);
+});
