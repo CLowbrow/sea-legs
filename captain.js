@@ -31,13 +31,11 @@ var lexer = new Lexer();
 
 lexer.on('lexerToken', function (token) {
   allTokens.push(token);
+  console.log(token);
 });
 
 lexer.on('finished', function () {
-  console.log('ALL');
-  console.log(allTokens);
-  console.log('\n');
-  
+  console.log('\n\nfinished');
   if (process.argv[3] === "-s") {
     searchtime();
   }

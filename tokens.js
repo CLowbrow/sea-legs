@@ -9,6 +9,8 @@ var nullTokens = {
   pseudoclassPrefix: ':',
   comma: ',',
   child: '>',
+  openBracket: '[',
+  closeBracket: ']',
   descendant: ' ',
   sibling: '+',
   quote: '"',

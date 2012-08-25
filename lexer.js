@@ -45,21 +45,34 @@ var Lexer = function () {
   
   lexy.peek = function () {
     return lexy.inputArr.charAt(lexy.pos);
-  }
+  };
   
   lexy.acceptMany = function (string) {
-    while (true) {
-      if (string.toLowerCase().indexOf(lexy.next().toLowerCase()) < 0) {
+    var next = lexy.next();
+    while (next !== '') {
+      if (string.toLowerCase().indexOf(next.toLowerCase()) < 0) {
         lexy.backup();
         break;
       }
+      next = lexy.next();
     }
-  }
+  };
+  
+  lexy.acceptUntil = function (string) {
+    var next = lexy.next();
+    while (next !== '') {
+      if (string.toLowerCase().indexOf(next.toLowerCase()) >= 0) {
+        lexy.backup();
+        break;
+      }
+      next = lexy.next();
+    }
+  };
   
   lexy.ignoreMany = function (string) {
     lexy.acceptMany(string);
     lexy.start = lexy.pos;
-  }
+  };
   
   /* This is the engine. Each state function returns the next state function, 
   or undefined if we have run out of file. */ 
@@ -70,7 +83,6 @@ var Lexer = function () {
     while (state) {
       state = state(lexy);
     }
-    
     //we are done parsing. tell the consumer.
     lexy.emit('finished');
   };
@@ -84,6 +96,6 @@ var Lexer = function () {
   
 };
 
-Lexer.prototype = new EventEmitter;
+Lexer.prototype = new EventEmitter();
 
 exports.Lexer = Lexer;

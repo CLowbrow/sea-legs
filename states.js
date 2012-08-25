@@ -29,6 +29,7 @@ var inSet = function (needle, haystack) {
 
 var states = {
   lexStatement: function (lexer) {
+    //TODO: this function is really weird because it backtracks all over the place.
     lexer.ignoreMany(' \n');
     while (true) {
       var nextChar = lexer.inputArr.charAt(lexer.pos);
@@ -104,7 +105,7 @@ var states = {
     return states.lexStatement;
   },
   lexSelector: function (lexer) {
-    lexer.acceptMany('abcdefghijklmnopqrstuv[]=~:*|1234567890');
+    lexer.acceptMany('abcdefghijklmnopqrstuv=~:*|1234567890');
     lexer.emitToken('selector');
     switch (lexer.peek()) {
       case tokens.idPrefix:
@@ -115,6 +116,9 @@ var states = {
           
       case tokens.openBrace:
         return states.lexOpenBrace;
+      
+      case tokens.openBracket:
+        return states.lexOpenBracket;
 
       case tokens.comma:
         return states.lexComma;
@@ -204,7 +208,43 @@ var states = {
     lexer.next();
     lexer.emitToken('siblingOperator');
     return states.lexStatement;
+  },
+  lexOpenBracket: function (lexer) {
+    lexer.next();
+    lexer.emitToken('openBracket');
+    return states.lexAttribute;
+  },
+  lexCloseBracket: function (lexer) {
+    lexer.next();
+    lexer.emitToken('closeBracket');
+    return states.lexStatement;
+  },
+  lexAttribute: function (lexer) {
+    lexer.acceptUntil('=~^$*|] ');
+    if(lexer.peek() === tokens.closeBracket) {
+      lexer.emitToken('attribute');
+      return states.lexCloseBracket;
+    } else {
+      lexer.emitToken('attribute');
+      return states.lexAttributeComparison;
+    }
+  },
+  lexAttributeComparison: function (lexer) {
+    lexer.ignoreMany(' \n');
+    //one or two characters
+    if (lexer.next() !== '=') {
+      lexer.next();
+    }
+    lexer.emitToken('attributeComparison');
+    return states.lexAttributeValue;
+  },
+  lexAttributeValue: function (lexer) {
+    lexer.ignoreMany(' \n');
+    lexer.acceptUntil(tokens.closeBracket);
+    lexer.emitToken('attributeValue');
+    return states.lexCloseBracket;
   }
+  
 };
 
 exports.states = states;
