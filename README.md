@@ -6,15 +6,19 @@ What we **DID** have was a can-do attitude, a spring in our step, and first orde
 
 ## Ok, but what is this?
 
-This is a (bad) css lexer with some helpers bolted on to the front of it that I will probably use for something useful once I make it good enough.
+This is a (bad) css lexer with some search functionality bolted on the front of it
 
 ## Usage
 
-Run:
+Run captain.js on a file to get all tokens in stdout:
 
-    ./captain.js filename [[-d]|[-s searchstring]]
+    ./captain.js sample.css
+    
+Run captain.js with the search flag like this:
 
-with filename being the file you would like to lex. If no filename is specified, captain will lex sample.css. Add -d if you want to see output of all tokens that were lexed.
+    ./captain.js sample.css -s ".one .two"
+
+you will get an output of how many times this selector was found in the code (possibly as a subset of another selector)
 
 ## Why not save yourself a lot of time and use a regex?
 

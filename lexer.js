@@ -1,6 +1,9 @@
 var states = require('./states').states;
+var EventEmitter = require('events').EventEmitter;
 
-var Lexer = function (emitter) {
+//Lexer can emit tokens and the finished event.
+
+var Lexer = function () {
   
   var lexy = this;
   lexy.inputArr = '';
@@ -8,13 +11,14 @@ var Lexer = function (emitter) {
   lexy.pos = 0;
   lexy.width = 0;
   
-  lexy.emit = function (type) {
+  
+  lexy.emitToken = function (type) {
     var token = {
       type: type,
       value: lexy.inputArr.substring(lexy.start, lexy.pos)
     };
     if(lexy.start !== lexy.pos) {
-      emitter.emit('lexerToken', token);
+      lexy.emit('lexerToken', token);
       lexy.start = lexy.pos;
     }
   };
@@ -39,6 +43,24 @@ var Lexer = function (emitter) {
     lexy.pos -= 1;
   };
   
+  lexy.peek = function () {
+    return lexy.inputArr.charAt(lexy.pos);
+  }
+  
+  lexy.acceptMany = function (string) {
+    while (true) {
+      if (string.toLowerCase().indexOf(lexy.next().toLowerCase()) < 0) {
+        lexy.backup();
+        break;
+      }
+    }
+  }
+  
+  lexy.ignoreMany = function (string) {
+    lexy.acceptMany(string);
+    lexy.start = lexy.pos;
+  }
+  
   /* This is the engine. Each state function returns the next state function, 
   or undefined if we have run out of file. */ 
 
@@ -50,7 +72,7 @@ var Lexer = function (emitter) {
     }
     
     //we are done parsing. tell the consumer.
-    emitter.emit('finished');
+    lexy.emit('finished');
   };
   
   lexy.begin = function (string) {
@@ -61,5 +83,7 @@ var Lexer = function (emitter) {
   };
   
 };
+
+Lexer.prototype = new EventEmitter;
 
 exports.Lexer = Lexer;

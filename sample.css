@@ -75,7 +75,24 @@ div {
     float:left;
   }
   
-  .classname {
+  .classname:after {
     float: right;
   }
+}
+
+@namespace foo url(www.example.com);
+
+foo|h1 { color: blue }  /* first rule */
+
+div[foo] {
+}
+
+*[langl="en"]
+
+.banas[taste = "delicious"]{
+
+}
+
+.rainbow[colors~="red"]{
+
 }

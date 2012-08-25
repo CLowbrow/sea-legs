@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-var EventEmitter = require('events').EventEmitter;
 var Lexer = require('./lexer').Lexer;
 var tokens = require('./tokens').tokens;
+var util = require('./tokens').util;
 var fs = require('fs');
 
 //collections for main css file being parsed
@@ -10,92 +10,41 @@ var classes = {},
     ids = {},
     allTokens = [],
     count = 0;
+    
+var searchLexer = new Lexer(),
+    searchTokens = [],
+    matches = 0;
 
-//TODO: perhaps worst named variables ever
-var semitter = new EventEmitter();
-var slexer = new Lexer(semitter);
-var searchTokens = [];
-var matches = 0;
-
-
-//TODO: This function is horrible. Get it out of here
+//TODO: Make this better somehow
 var searchtime = function () {
   count++;
   if (count === 2) {
     
-    var searchLength = searchTokens.length;
-    var match = true;
-    var token1, token2;
+    var matches = util.searchForTokenSequence(searchTokens, allTokens);
 
-    for (var i=0; i < allTokens.length - searchTokens.length; i++) {
-      match = true;
-      for(var j = 0; j < searchTokens.length; j++) {
-        token1 = allTokens[i+j];
-        token2 = searchTokens[j];
-        
-        
-        if(token1.type !== token2.type) {
-          match = false;
-          break;
-        }
-        
-        if(!tokens.hasOwnProperty(token1.type) && token1.value !== token2.value) {
-          match = false;
-          break;
-        }
-        
-      }
-      if (match) {
-        matches++;
-      }
-      
-    }
-    console.log(matches + ' MATCHES FOUND');
+    console.log(matches.length + ' MATCHES FOUND');
     console.log('\n----------------------\n');
   }
 };
 
+var lexer = new Lexer();
 
-var emitter = new EventEmitter();
-emitter.on('lexerToken', function (token) {
+lexer.on('lexerToken', function (token) {
   allTokens.push(token);
-  
-  if (token.type === "className") {
-    if(classes.hasOwnProperty(token.value)) {
-      classes[token.value]++;
-    } else {
-      classes[token.value] = 1;
-    }
-  }
-  if (token.type === "idName") {
-    if(ids.hasOwnProperty(token.value)) {
-      ids[token.value]++;
-    } else {
-      ids[token.value] = 1;
-    }
-  }
 });
 
-emitter.on('finished', function () {
-  if (process.argv[3] === "-d") {
-    console.log('ALL');
-    console.log(allTokens);
-    console.log('\n');
-  }
+lexer.on('finished', function () {
+  console.log('ALL');
+  console.log(allTokens);
+  console.log('\n');
   
-  if (process.argv[3] !== "-s") {
-    console.log('CLASSES');
-    console.log(classes);
-    console.log('\n');
-    console.log('IDS');
-    console.log(ids);
-  } else {
+  if (process.argv[3] === "-s") {
     searchtime();
   }
 });
 
 //GO GO GO!!!
-var lexer = new Lexer(emitter);
+
 var file = process.argv[2] || "sample.css";
 fs.readFile(file, 'utf8', function (err,data) {
   if (err) {
@@ -105,15 +54,16 @@ fs.readFile(file, 'utf8', function (err,data) {
 });
 
 if (process.argv[3] === "-s") {
-  semitter.on('lexerToken', function (token) {
+  
+  searchLexer.on('lexerToken', function (token) {
     searchTokens.push(token);
   });
-  semitter.on('finished', function () {
+  searchLexer.on('finished', function () {
     console.log('SEARCH STRING LEXED AS \n');
     console.log(searchTokens);
     console.log('\n----------------------\n');
     searchtime();
   });
-  slexer.begin(process.argv[4]);
+  searchLexer.begin(process.argv[4]);
 }
 

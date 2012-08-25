@@ -1,4 +1,4 @@
-var tokens = require('./tokens').tokens;
+var tokens = require('./tokens').nullTokens;
 
 //Some helper functions
 //These should go somewhere else
@@ -29,22 +29,20 @@ var inSet = function (needle, haystack) {
 
 var states = {
   lexStatement: function (lexer) {
+    lexer.ignoreMany(' \n');
     while (true) {
-      //TODO: clean this up. Don't need restOfString.
       var nextChar = lexer.inputArr.charAt(lexer.pos);
-      if (nextChar === tokens.openBrace || nextChar === '') {
+      if (nextChar === tokens.openBrace) {
         lexer.pos = lexer.start;
         return states.lexSelector;
       } else if (nextChar === tokens.atStart) {
         return states.lexAt;
       } else if (nextChar === tokens.semicolon) {
-        lexer.emit('declaration');
+        lexer.emitToken('declaration');
         return states.lexSemicolon;
       } else if (nextChar === tokens.closeBrace) {
-        lexer.emit('declaration');
+        lexer.emitToken('declaration');
         return states.lexCloseBrace;
-      } else if (isBlank(nextChar) && lexer.start === lexer.pos){
-        lexer.start++;
       } 
       if (nextChar === '') { 
         return undefined; 
@@ -55,17 +53,17 @@ var states = {
   },
   lexOpenBrace: function (lexer) {
     lexer.next();
-    lexer.emit('openBrace');
+    lexer.emitToken('openBrace');
     return states.lexStatement;
   },
   lexCloseBrace: function (lexer) {
     lexer.next();
-    lexer.emit('closeBrace');
+    lexer.emitToken('closeBrace');
     return states.lexStatement;
   },
   lexAt: function (lexer) {
     lexer.next();
-    lexer.emit('@');
+    lexer.emitToken('@');
     return states.lexAtRule;
   },
   lexAtRule: function (lexer) {
@@ -74,10 +72,10 @@ var states = {
       
       if (token === ' '){
         lexer.backUp();
-        lexer.emit('atRule');
+        lexer.emitToken('atRule');
         return states.lexAtBlock;
       } else if (token === '') {
-        lexer.emit('atRule');
+        lexer.emitToken('atRule');
         return undefined; 
       }
     }
@@ -87,12 +85,12 @@ var states = {
       switch (lexer.next()) {
         case tokens.semicolon:
           lexer.backUp();
-          lexer.emit('atBlock');
+          lexer.emitToken('atBlock');
           return states.lexSemicolon;
         
           case tokens.openBrace:
             lexer.backUp();
-            lexer.emit('atBlock');
+            lexer.emitToken('atBlock');
             return states.lexOpenBrace;
         
         case '':
@@ -102,57 +100,39 @@ var states = {
   },
   lexSemicolon: function (lexer) {
     lexer.next();
-    lexer.emit('semicolon');
+    lexer.emitToken('semicolon');
     return states.lexStatement;
   },
   lexSelector: function (lexer) {
-    while (true) {
-      switch (lexer.next()) {
-        case tokens.idPrefix:
-          lexer.backUp();
-          lexer.emit('selector');
-          return states.lexId;
+    lexer.acceptMany('abcdefghijklmnopqrstuv[]=~:*|1234567890');
+    lexer.emitToken('selector');
+    switch (lexer.peek()) {
+      case tokens.idPrefix:
+        return states.lexId;
           
-        case tokens.classPrefix:
-          lexer.backUp();
-          lexer.emit('selector');
-          return states.lexClass;
+      case tokens.classPrefix:
+        return states.lexClass;
           
-        case tokens.openBrace:
-          lexer.backUp();
-          lexer.emit('selector');
-          return states.lexOpenBrace;
+      case tokens.openBrace:
+        return states.lexOpenBrace;
 
-        case tokens.comma:
-          lexer.backUp();
-          lexer.emit('selector');
-          return states.lexComma;
+      case tokens.comma:
+        return states.lexComma;
         
-        case tokens.descendant:
-          lexer.backUp();
-          lexer.emit('selector');
-          return states.lexDescendant;
+      case tokens.descendant:
+        return states.lexDescendant;
         
-        case tokens.sibling:
-          lexer.backUp();
-          lexer.emit('selector');
-          return states.lexSiblingOperator;
+      case tokens.sibling:
+        return states.lexSiblingOperator;
           
-        case tokens.child:
-          lexer.backUp();
-          lexer.emit('selector');
-          return states.lexChildOperator;
+      case tokens.child:
+        return states.lexChildOperator;
         
-        case '\n':
-          lexer.backUp();
-          lexer.emit('selector');
-          return states.lexDescendant;
+      case '\n':
+        return states.lexDescendant;
           
-        case '':
-          lexer.backUp();
-          lexer.emit('selector');
-          return undefined;
-      }
+      case '':
+        return undefined;
     }
   },
   lexId: function (lexer) {
@@ -161,11 +141,11 @@ var states = {
       var token = lexer.next();
       if(!inSet(token.toLowerCase(), 'abcdefghijklmnopqrstuvwxyz01234567890-_')){
         lexer.backUp();
-        lexer.emit('idName');
+        lexer.emitToken('idName');
         return states.lexSelector;
       }
       if (token === '') {
-        lexer.emit('idName');
+        lexer.emitToken('idName');
         return undefined; 
       }
     }
@@ -176,18 +156,18 @@ var states = {
       var token = lexer.next();
       if(!inSet(token.toLowerCase(), 'abcdefghijklmnopqrstuvwxyz01234567890-_')){
         lexer.backUp();
-        lexer.emit('className');
+        lexer.emitToken('className');
         return states.lexSelector;
       }
       if (token === '') { 
-        lexer.emit('className');
+        lexer.emitToken('className');
         return undefined; 
       }
     }
   },
   lexComma: function (lexer) {
     lexer.next();
-    lexer.emit('comma');
+    lexer.emitToken('comma');
     return states.lexStatement;
   },
   lexDescendant: function (lexer) {
@@ -209,7 +189,7 @@ var states = {
         return states.lexChildOperator;
       } else if (!isBlank(token)) {
         lexer.backUp();
-        lexer.emit('descendant');
+        lexer.emitToken('descendant');
         return states.lexSelector;
       } 
       if (token === '') { return undefined; }
@@ -217,12 +197,12 @@ var states = {
   },
   lexChildOperator: function (lexer) {
     lexer.next();
-    lexer.emit('childOperator');
+    lexer.emitToken('childOperator');
     return states.lexStatement;
   },
   lexSiblingOperator: function (lexer) {
     lexer.next();
-    lexer.emit('siblingOperator');
+    lexer.emitToken('siblingOperator');
     return states.lexStatement;
   }
 };
