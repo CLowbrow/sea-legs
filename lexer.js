@@ -56,6 +56,9 @@ var Lexer = function () {
       }
       next = lexy.next();
     }
+    if(next === '') {
+      lexy.backup();
+    }
   };
   
   lexy.acceptUntil = function (string) {
@@ -66,6 +69,9 @@ var Lexer = function () {
         break;
       }
       next = lexy.next();
+    }
+    if(next === '') {
+      lexy.backup();
     }
   };
   

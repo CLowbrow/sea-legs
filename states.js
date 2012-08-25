@@ -45,8 +45,10 @@ var states = {
         lexer.emitToken('declaration');
         return states.lexCloseBrace;
       } 
-      if (nextChar === '') { 
-        return undefined; 
+      if (nextChar === '') {
+        lexer.pos = lexer.start;
+        return states.lexSelector; 
+        //return undefined;
       }
       //increment stuff
       lexer.pos++;
@@ -68,18 +70,9 @@ var states = {
     return states.lexAtRule;
   },
   lexAtRule: function (lexer) {
-    while (true) {
-      var token = lexer.next();
-      
-      if (token === ' '){
-        lexer.backUp();
-        lexer.emitToken('atRule');
-        return states.lexAtBlock;
-      } else if (token === '') {
-        lexer.emitToken('atRule');
-        return undefined; 
-      }
-    }
+    lexer.acceptUntil(' ');
+    lexer.emitToken('atRule');
+    return states.lexAtBlock;
   },
   lexAtBlock: function (lexer) {
     while (true) {
@@ -141,33 +134,15 @@ var states = {
   },
   lexId: function (lexer) {
     lexer.next();
-    while (true) {
-      var token = lexer.next();
-      if(!inSet(token.toLowerCase(), 'abcdefghijklmnopqrstuvwxyz01234567890-_')){
-        lexer.backUp();
-        lexer.emitToken('idName');
-        return states.lexSelector;
-      }
-      if (token === '') {
-        lexer.emitToken('idName');
-        return undefined; 
-      }
-    }
+    lexer.acceptMany('abcdefghijklmnopqrstuvwxyz01234567890-_');
+    lexer.emitToken('idName');
+    return states.lexSelector;
   },
   lexClass: function (lexer) {
     lexer.next();
-    while (true) {
-      var token = lexer.next();
-      if(!inSet(token.toLowerCase(), 'abcdefghijklmnopqrstuvwxyz01234567890-_')){
-        lexer.backUp();
-        lexer.emitToken('className');
-        return states.lexSelector;
-      }
-      if (token === '') { 
-        lexer.emitToken('className');
-        return undefined; 
-      }
-    }
+    lexer.acceptMany('abcdefghijklmnopqrstuvwxyz01234567890-_');
+    lexer.emitToken('className');
+    return states.lexSelector;
   },
   lexComma: function (lexer) {
     lexer.next();
