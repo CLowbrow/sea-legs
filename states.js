@@ -102,7 +102,7 @@ var states = {
     return states.lexStatement;
   },
   lexSelector: function (lexer) {
-    lexer.acceptMany('abcdefghijklmnopqrstuv=~:*|1234567890');
+    lexer.acceptMany('abcdefghijklmnopqrstuvxyz=~:*|1234567890-_()');
     lexer.emitToken('selector');
     switch (lexer.peek()) {
       case tokens.idPrefix:

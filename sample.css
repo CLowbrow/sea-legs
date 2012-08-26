@@ -87,8 +87,6 @@ foo|h1 { color: blue }  /* first rule */
 div[foo] {
 }
  
-
-
 *[langl="en"]
 
 .bannaas[taste = "delicious"]{
@@ -99,3 +97,6 @@ div[foo] {
 
 }
 
+table .td:nth-child(odd) {
+
+} 
