@@ -2,9 +2,9 @@
   "name": "sealegs",
   "version": "0.0.1",
   "description": "custom toy lexer for css",
-  "main": "captain.js",
+  "main": "lexer.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tap test/*.js"
   },
   "devDependencies" : {
       "tap" : "~0.3.0"

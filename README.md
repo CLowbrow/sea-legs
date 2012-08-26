@@ -8,7 +8,35 @@ What we **DID** have was a can-do attitude, a spring in our step, and first orde
 
 This is a (bad) css lexer with some search functionality bolted on the front of it
 
-## Usage
+## Getting stuff out in node
+
+Lexer.js provides a Lexer constructor. The lexer object inherits from EventEmitter
+
+    var Lexer = require('./lexer').Lexer;
+    
+    //instantiate lexer (you need a new one for each string you lex)
+    var lexy = new Lexer();
+    
+    // Lexer emits 2 kinds of events:
+    
+    //'lexerToken' events are emitted when lexer has lexes another token and it's ready.
+    lexy.on('lexerToken', function (token) {
+      //do something with your token.
+    });
+
+    // The 'finished' event is emitted when the lexer runs out of string to lex or encounters and error. 
+    // (Unfortunately, no error events yet)
+    lexy.on('finished', function () {
+      if (process.argv[3] === "-s") {
+        searchtime();
+      }
+    });
+    
+    //To get the lexer rolling, simply call 
+    lexy.begin(data); // data is a string
+    
+
+## Command Line Usage
 
 Run captain.js on a file to get all tokens in stdout:
 
@@ -27,4 +55,4 @@ you will get an output of how many times this selector was found in the code (po
 ## Credits
 
 Ideas for writing a lexer come from [this excellent presentation](http://rspace.googlecode.com/hg/slide/lex.html).
-Ideas for what makes lexing useful outside of a parser/interpreter comes from [pfff](https://github.com/facebook/pfff).
+Ideas for what makes lexing useful outside of a parser/interpreter come from [pfff](https://github.com/facebook/pfff).
