@@ -28,9 +28,7 @@ lexy.on('lexerToken', function (token) {
 // The 'finished' event is emitted when the lexer runs out of string to lex or encounters and error. 
 // (Unfortunately, no error events yet)
 lexy.on('finished', function () {
-  if (process.argv[3] === "-s") {
-    searchtime();
-  }
+  // All done
 });
     
 //To get the lexer rolling, simply call 
