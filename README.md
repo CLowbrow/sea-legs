@@ -12,29 +12,30 @@ This is a (bad) css lexer with some search functionality bolted on the front of 
 
 Lexer.js provides a Lexer constructor. The lexer object inherits from EventEmitter
 
-    var Lexer = require('./lexer').Lexer;
+```js
+var Lexer = require('./lexer').Lexer;
     
-    //instantiate lexer (you need a new one for each string you lex)
-    var lexy = new Lexer();
+//instantiate lexer (you need a new one for each string you lex)
+var lexy = new Lexer();
     
-    // Lexer emits 2 kinds of events:
+// Lexer emits 2 kinds of events:
     
-    //'lexerToken' events are emitted when lexer has lexes another token and it's ready.
-    lexy.on('lexerToken', function (token) {
-      //do something with your token.
-    });
+//'lexerToken' events are emitted when lexer has lexes another token and it's ready.
+lexy.on('lexerToken', function (token) {
+  //do something with your token.
+});
 
-    // The 'finished' event is emitted when the lexer runs out of string to lex or encounters and error. 
-    // (Unfortunately, no error events yet)
-    lexy.on('finished', function () {
-      if (process.argv[3] === "-s") {
-        searchtime();
-      }
-    });
+// The 'finished' event is emitted when the lexer runs out of string to lex or encounters and error. 
+// (Unfortunately, no error events yet)
+lexy.on('finished', function () {
+  if (process.argv[3] === "-s") {
+    searchtime();
+  }
+});
     
-    //To get the lexer rolling, simply call 
-    lexy.begin(data); // data is a string
-    
+//To get the lexer rolling, simply call 
+lexy.begin(data); // data is a string
+```
 
 ## Command Line Usage
 
