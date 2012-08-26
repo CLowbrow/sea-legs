@@ -31,28 +31,32 @@ var states = {
   lexStatement: function (lexer) {
     //TODO: this function is really weird because it backtracks all over the place.
     lexer.ignoreMany(' \n');
-    while (true) {
-      var nextChar = lexer.inputArr.charAt(lexer.pos);
-      if (nextChar === tokens.openBrace) {
-        lexer.pos = lexer.start;
-        return states.lexSelector;
-      } else if (nextChar === tokens.atStart) {
-        return states.lexAt;
-      } else if (nextChar === tokens.semicolon) {
-        lexer.emitToken('declaration');
-        return states.lexSemicolon;
-      } else if (nextChar === tokens.closeBrace) {
-        lexer.emitToken('declaration');
-        return states.lexCloseBrace;
-      } 
-      if (nextChar === '') {
-        lexer.pos = lexer.start;
-        return states.lexSelector; 
-        //return undefined;
+    
+    //get the first thing
+    var next = lexer.peek();
+    
+    while (next !== '') {
+      switch (lexer.peek()) {
+        case tokens.openBrace:
+          lexer.pos = lexer.start;
+          return states.lexSelector;
+        
+        case tokens.atStart:
+          return states.lexAt;
+        
+        case tokens.semicolon:
+          lexer.emitToken('declaration');
+          return states.lexSemicolon;
+        
+        case tokens.closeBrace:
+          lexer.emitToken('declaration');
+          return states.lexCloseBrace;
       }
       //increment stuff
-      lexer.pos++;
+      next = lexer.next();
     }
+    lexer.pos = lexer.start;
+    return states.lexSelector;
   },
   lexOpenBrace: function (lexer) {
     lexer.next();

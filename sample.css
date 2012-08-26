@@ -80,7 +80,7 @@ div {
   }
 }
 
-@namespace foo url(www.example.com);
+@namespace foo url(http://www.example.com);
 
 foo|h1 { color: blue }  /* first rule */
 

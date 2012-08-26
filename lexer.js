@@ -95,7 +95,7 @@ var Lexer = function () {
   
   lexy.begin = function (string) {
     //Strip Comments. I am CHEATING here because comments suck.
-    var data = string.replace(/(\/\*([\s\S]*?)\*\/)|(\/\/(.*)$)/gm, '');
+    var data = string.replace(/(\/\*([\s\S]*?)\*\/)/gm, '');
     lexy.inputArr = data;
     run();
   };
