@@ -30,9 +30,10 @@ var util = {
         positions = [],
         token1, token2;
 
-    for (var i=0; i < haystack.length - searchTokensLength; i++) {
+    for (var i=0; i <= haystack.length - searchTokensLength; i++) {
       match = true;
       for(var j = 0; j < searchTokensLength; j++) {
+        
         token1 = haystack[i+j];
         token2 = needle[j];
         

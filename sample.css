@@ -87,7 +87,9 @@ foo|h1 { color: blue }  /* first rule */
 div[foo] {
 }
  
-*[langl="en"]
+*[langl="en"] {
+  float: left;
+}
 
 .bannaas[taste = "delicious"]{
 

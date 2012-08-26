@@ -79,6 +79,7 @@ var states = {
     return states.lexAtBlock;
   },
   lexAtBlock: function (lexer) {
+    lexer.ignoreMany(' \n');
     while (true) {
       switch (lexer.next()) {
         case tokens.semicolon:
@@ -86,10 +87,10 @@ var states = {
           lexer.emitToken('atBlock');
           return states.lexSemicolon;
         
-          case tokens.openBrace:
-            lexer.backUp();
-            lexer.emitToken('atBlock');
-            return states.lexOpenBrace;
+        case tokens.openBrace:
+          lexer.backUp();
+          lexer.emitToken('atBlock');
+          return states.lexOpenBrace;
         
         case '':
           return undefined;
