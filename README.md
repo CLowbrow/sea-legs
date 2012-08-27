@@ -12,14 +12,15 @@ This is a (bad) css lexer with some search functionality bolted on the front of 
 
 Lexer.js provides a Lexer constructor. The lexer object inherits from EventEmitter
 
+
 ```js
-var Lexer = require('./lexer').Lexer;
+var Lexer = require('sealegs').Lexer;
     
-//instantiate lexer (you need a new one for each string you lex)
+//instantiate lexer
 var lexy = new Lexer();
     
 // Lexer emits 2 kinds of events:
-    
+
 //'lexerToken' events are emitted when lexer has lexes another token and it's ready.
 lexy.on('lexerToken', function (token) {
   //do something with your token.
@@ -32,7 +33,7 @@ lexy.on('finished', function () {
 });
     
 //To get the lexer rolling, simply call 
-lexy.begin(data); // data is a string
+lexy.begin('.one .two');
 ```
 
 ## Command Line Usage
