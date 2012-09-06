@@ -3,6 +3,10 @@
   "version": "0.0.2",
   "description": "custom toy lexer for css",
   "main": "lexer.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/CLowbrow/sea-legs.git"
+  },
   "scripts": {
     "test": "tap test/*.js"
   },
