@@ -2,6 +2,10 @@
 
 @import url("foo.css") print;
 
+div.hello {
+  text-decoration: none;
+}
+
 div .hello {
   float:left
 }
@@ -31,6 +35,7 @@ div {
     div.superdiv {
   float:right;
 }
+
 
 
 
