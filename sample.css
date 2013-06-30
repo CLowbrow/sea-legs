@@ -1,4 +1,4 @@
-/* this is a comment! */ 
+.one .two
 
 @import url("foo.css") print;
 
@@ -12,19 +12,14 @@ div .hello {
 
 @import url("fineprint.css") print;
 
-/* testing search */ 
 
-/* real 1*/
 .one .two{}
 
-/* real 2*/
 .one
 .two {}
-  
-/* real 3*/
+
+
 .one     .two {}
-  
-/* NOT A MATCH! */
 
 @import url(" .one .two ") print;
 
@@ -39,7 +34,7 @@ div {
 
 
 
-.classname 
+.classname
 .another-thing {
   float: left;
 }
@@ -60,7 +55,7 @@ div {
   float: none;
 }
 
-.one > .two, 
+.one > .two,
 .one+.two {
   float:left;
 }
@@ -79,7 +74,7 @@ div {
   #whatever {
     float:left;
   }
-  
+
   .classname:after {
     float: right;
   }
@@ -87,11 +82,11 @@ div {
 
 @namespace foo url(http://www.example.com);
 
-foo|h1 { color: blue }  /* first rule */
+foo|h1 { color: blue }
 
 div[foo] {
 }
- 
+
 *[langl="en"] {
   float: left;
 }
@@ -106,4 +101,4 @@ div[foo] {
 
 table .td:nth-child(odd) {
 
-} 
+}

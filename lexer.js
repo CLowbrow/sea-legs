@@ -8,27 +8,24 @@ var Lexer = function () {
 
   var lexy = Writable();
   lexy.inputArr = '';
-  lexy.start = 0;
   lexy.pos = 0;
-  lexy.width = 0;
 
   lexy._write = function (chunk, enc, next) {
-    console.dir(chunk);
+    lexy.inputArr += chunk;
     next();
   };
 
   lexy.emitToken = function (type) {
     var token = {
       type: type,
-      value: lexy.inputArr.substring(lexy.start, lexy.pos)
+      value: lexy.inputArr.substring(0, lexy.pos)
     };
-    if(lexy.start !== lexy.pos) {
+    if(lexy.pos !== 0) {
       lexy.emit('lexerToken', token);
-      lexy.start = lexy.pos;
+      lexy.inputArr = lexy.inputArr.substring(lexy.pos)
+      lexy.pos = 0;
     }
   };
-
-  //TODO: add accept, acceptmany, and peek.
 
   lexy.next = function () {
     var rune = lexy.inputArr.charAt(lexy.pos);
@@ -41,12 +38,17 @@ var Lexer = function () {
   };
 
   lexy.ignore = function () {
-    lexy.start = lexy.pos;
+    lexy.inputArr = lexy.inputArr.substring(lexy.pos)
+    lexy.pos = 0;
   };
 
   lexy.backup = function () {
     lexy.pos -= 1;
   };
+
+  lexy.rewind = function () {
+    lexy.pos = 0;
+  }
 
   lexy.peek = function () {
     return lexy.inputArr.charAt(lexy.pos);
@@ -82,7 +84,7 @@ var Lexer = function () {
 
   lexy.ignoreMany = function (string) {
     lexy.acceptMany(string);
-    lexy.start = lexy.pos;
+    lexy.ignore()
   };
 
   /* This is the engine. Each state function returns the next state function,
@@ -99,8 +101,8 @@ var Lexer = function () {
   };
 
   lexy.begin = function (string) {
-    //Strip Comments. I am CHEATING here because comments suck.
-    var data = string.replace(/(\/\*([\s\S]*?)\*\/)/gm, '');
+    console.log('running');
+    var data = string;
     lexy.inputArr = data;
     run();
   };

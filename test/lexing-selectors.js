@@ -8,9 +8,9 @@ var sameTokens = function (a, b) {
 };
 
 var isMatch = function (string, tokens, func) {
-  var lexer = new Lexer(),
+  var lexer = Lexer(),
       lexedTokens = [];
-  
+
   lexer.on('lexerToken', function (token) {
     lexedTokens.push(token);
   });
@@ -18,38 +18,38 @@ var isMatch = function (string, tokens, func) {
   lexer.on('finished', function () {
     func(sameTokens(tokens, lexedTokens));
   });
-  
+
   lexer.begin(string);
 };
 
 test("match two classnames", function (t) {
   var testString = ".one .two",
-      expectedResult = [ 
+      expectedResult = [
         { type: 'className', value: '.one' },
         { type: 'descendant', value: ' ' },
-        { type: 'className', value: '.two' } 
+        { type: 'className', value: '.two' }
       ];
-  
+
   isMatch(testString, expectedResult, function (match) {
     t.ok(match, testString);
     t.end();
   });
-  
+
 });
 
 test("deny two classnames", function (t) {
   var testString = ".one .three",
-      expectedResult = [ 
+      expectedResult = [
         { type: 'className', value: '.one' },
         { type: 'descendant', value: ' ' },
-        { type: 'className', value: '.two' } 
+        { type: 'className', value: '.two' }
       ];
-  
+
   isMatch(testString, expectedResult, function (match) {
     t.notOk(match, testString);
     t.end();
   });
-  
+
 });
 
 test("match a list of selectors separated by commas", function (t) {
@@ -64,30 +64,30 @@ test("match a list of selectors separated by commas", function (t) {
         { type: 'comma', value: ',' },
         { type: 'className', value: '.selector-three' },
         { type: 'descendant', value: ' ' },
-        { type: 'idName', value: '#what' } 
+        { type: 'idName', value: '#what' }
       ];
-  
+
   isMatch(testString, expectedResult, function (match) {
     t.ok(match, testString);
     t.end();
   });
-  
+
 });
 
 test("match an import statement", function (t) {
   var testString = '@import url("foo.css") print;',
-      expectedResult = [ 
+      expectedResult = [
         { type: '@', value: '@' },
         { type: 'atRule', value: 'import' },
         { type: 'atBlock', value: 'url("foo.css") print' },
-        { type: 'semicolon', value: ';' } 
+        { type: 'semicolon', value: ';' }
       ];
-  
+
   isMatch(testString, expectedResult, function (match) {
     t.ok(match, testString);
     t.end();
   });
-  
+
 });
 
 test("match a selector with an attribute", function (t) {
@@ -97,14 +97,14 @@ test("match a selector with an attribute", function (t) {
         { type: 'attribute', value: 'langl' },
         { type: 'attributeComparison', value: '=' },
         { type: 'attributeValue', value: '"en"' },
-        { type: 'closeBracket', value: ']' } 
+        { type: 'closeBracket', value: ']' }
       ];
-  
+
   isMatch(testString, expectedResult, function (match) {
     t.ok(match, testString);
     t.end();
   });
-  
+
 });
 
 test("match selectors nested in a media query", function (t) {
@@ -119,12 +119,12 @@ test("match selectors nested in a media query", function (t) {
           { type: 'className', value: '.classname' },
           { type: 'openBrace', value: '{' },
           { type: 'closeBrace', value: '}' },
-          { type: 'closeBrace', value: '}' } 
+          { type: 'closeBrace', value: '}' }
       ];
-  
+
   isMatch(testString, expectedResult, function (match) {
     t.ok(match, testString);
     t.end();
   });
-  
+
 });

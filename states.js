@@ -31,23 +31,23 @@ var states = {
   lexStatement: function (lexer) {
     //TODO: this function is really weird because it backtracks all over the place.
     lexer.ignoreMany(' \n');
-    
+
     //get the first thing
     var next = lexer.peek();
-    
+    console.log(next);
     while (next !== '') {
-      switch (lexer.peek()) {
+      switch (next) {
         case tokens.openBrace:
-          lexer.pos = lexer.start;
+          lexer.rewind();
           return states.lexSelector;
-        
+
         case tokens.atStart:
           return states.lexAt;
-        
+
         case tokens.semicolon:
           lexer.emitToken('declaration');
           return states.lexSemicolon;
-        
+
         case tokens.closeBrace:
           lexer.emitToken('declaration');
           return states.lexCloseBrace;
@@ -55,7 +55,7 @@ var states = {
       //increment stuff
       next = lexer.next();
     }
-    lexer.pos = lexer.start;
+    lexer.rewind();
     return states.lexSelector;
   },
   lexOpenBrace: function (lexer) {
@@ -86,12 +86,12 @@ var states = {
           lexer.backUp();
           lexer.emitToken('atBlock');
           return states.lexSemicolon;
-        
+
         case tokens.openBrace:
           lexer.backUp();
           lexer.emitToken('atBlock');
           return states.lexOpenBrace;
-        
+
         case '':
           return undefined;
       }
@@ -108,31 +108,31 @@ var states = {
     switch (lexer.peek()) {
       case tokens.idPrefix:
         return states.lexId;
-          
+
       case tokens.classPrefix:
         return states.lexClass;
-          
+
       case tokens.openBrace:
         return states.lexOpenBrace;
-      
+
       case tokens.openBracket:
         return states.lexOpenBracket;
 
       case tokens.comma:
         return states.lexComma;
-        
+
       case tokens.descendant:
         return states.lexDescendant;
-        
+
       case tokens.sibling:
         return states.lexSiblingOperator;
-          
+
       case tokens.child:
         return states.lexChildOperator;
-        
+
       case '\n':
         return states.lexDescendant;
-          
+
       case '':
         return undefined;
     }
@@ -160,22 +160,22 @@ var states = {
       //look ahead
       //TODO: this is too complicated. lexDescendant should not have to invalidate itself.
       if (token === tokens.openBrace) {
-        lexer.pos = ++lexer.start;
+        lexer.backUp();
         return states.lexOpenBrace;
       } else if (token === tokens.comma) {
-        lexer.pos = ++lexer.start;
+        lexer.backUp();
         return states.lexComma;
       } else if (token === tokens.sibling) {
-        lexer.pos = ++lexer.start;
+        lexer.backUp();
         return states.lexSiblingOperator;
       } else if (token === tokens.child) {
-        lexer.pos = ++lexer.start;
+        lexer.backUp();
         return states.lexChildOperator;
       } else if (!isBlank(token)) {
         lexer.backUp();
         lexer.emitToken('descendant');
         return states.lexSelector;
-      } 
+      }
       if (token === '') { return undefined; }
     }
   },
@@ -224,7 +224,7 @@ var states = {
     lexer.emitToken('attributeValue');
     return states.lexCloseBracket;
   }
-  
+
 };
 
 exports.states = states;
