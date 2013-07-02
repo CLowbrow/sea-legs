@@ -1,9 +1,8 @@
 var states = require('./states').states;
 var EventEmitter = require('events').EventEmitter;
 var Writable = require('stream').Writable;
-var heapdump = require('heapdump');
 
-//Lexer can emit tokens and the finish event
+//Lexer can emit "token" events and the "alldone" event
 
 var Lexer = function () {
 
@@ -12,6 +11,7 @@ var Lexer = function () {
   lexy.pos = 0;
   var cached = false;
   var started = false;
+  var finished = false;
   var cachedCallback = function () {
     console.log('something broke!');
   }
@@ -29,14 +29,14 @@ var Lexer = function () {
     next();
   };
 
-/*
-lexer.on(finish) {
-  send empty string to cached function.
-  emit different event to say that now you are REALLY DONE.
-}
+  lexy.on('finish', function() {
+    finished = true;
+  });
 
-*/
-  // Public Methods
+
+  /* ----------------------------------------
+   *  PUBLIC METHODS
+   * ---------------------------------------- */
 
   lexy.emitToken = function (type) {
     var token = {
@@ -45,14 +45,13 @@ lexer.on(finish) {
     };
     if(lexy.pos !== 0) {
       lexy.emit('lexerToken', token);
-      lexy.inputArr = lexy.inputArr.substring(lexy.pos)
+      lexy.inputArr = lexy.inputArr.substring(lexy.pos);
       lexy.pos = 0;
     }
   };
 
   lexy.next = function (callback) {
-    heapdump.writeSnapshot();
-    setImmediate(function () {
+    //setImmediate(function () {
       var rune = lexy.inputArr.charAt(lexy.pos);
       if (rune) {
         lexy.pos++;
@@ -60,8 +59,11 @@ lexer.on(finish) {
       } else {
         cached = true;
         cachedCallback = callback;
+        if(finished) {
+          lexy.emit('alldone');
+        }
       }
-    });
+    //});
   };
 
   lexy.backUp = function () {
@@ -117,17 +119,14 @@ lexer.on(finish) {
   /* This is the engine. Each state function returns the next state function,
   or undefined if we have run out of file. */
 
-  var done = function (nextState, finished) {
-    if(finished) {
-      lexy.emit('finished');
-    } else {
+  var done = function (nextState) {
+    //break up the recursion chain
+    setImmediate(function () {
       nextState(lexy, done);
-    }
+    });
   }
 
   return lexy;
 };
-
-Lexer.prototype = new EventEmitter();
 
 exports.Lexer = Lexer;
