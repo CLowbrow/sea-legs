@@ -28,12 +28,13 @@ var searchtime = function () {
 };
 
 var lexer = Lexer();
+var writeStream = fs.createWriteStream('./scratch.txt');
 
 lexer.on('lexerToken', function (token) {
-  allTokens.push(token);
-  //if (process.argv[3] === "-s") {
+  writeStream.write(JSON.stringify(token));
+  if (process.argv[3] === "-s") {
     console.log(token);
-  //}
+  }
 });
 
 lexer.on('finish', function () {
@@ -48,6 +49,7 @@ var file = process.argv[2] || "sample.css";
 
 var fileStream = fs.createReadStream(file);
 fileStream.pipe(lexer);
+
 
 
 

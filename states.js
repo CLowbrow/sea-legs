@@ -144,9 +144,6 @@ var states = {
 
           case '\n':
             return done(states.lexDescendant);
-
-          case '':
-            return done(false, true);
         }
       });
     });
@@ -251,9 +248,6 @@ var states = {
           done(states.lexAttributeValue);
         }
       })
-      if (lexer.next() !== '=') {
-        lexer.next();
-      }
     });
   },
   lexAttributeValue: function (lexer, done) {

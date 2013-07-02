@@ -1,8 +1,9 @@
 var states = require('./states').states;
 var EventEmitter = require('events').EventEmitter;
 var Writable = require('stream').Writable;
+var heapdump = require('heapdump');
 
-//Lexer can emit tokens and the finished event.
+//Lexer can emit tokens and the finish event
 
 var Lexer = function () {
 
@@ -28,6 +29,15 @@ var Lexer = function () {
     next();
   };
 
+/*
+lexer.on(finish) {
+  send empty string to cached function.
+  emit different event to say that now you are REALLY DONE.
+}
+
+*/
+  // Public Methods
+
   lexy.emitToken = function (type) {
     var token = {
       type: type,
@@ -41,14 +51,17 @@ var Lexer = function () {
   };
 
   lexy.next = function (callback) {
-    var rune = lexy.inputArr.charAt(lexy.pos);
-    if (rune) {
-      lexy.pos++;
-      callback(rune);
-    } else {
-      cached = true;
-      cachedCallback = callback;
-    }
+    heapdump.writeSnapshot();
+    setImmediate(function () {
+      var rune = lexy.inputArr.charAt(lexy.pos);
+      if (rune) {
+        lexy.pos++;
+        callback(rune);
+      } else {
+        cached = true;
+        cachedCallback = callback;
+      }
+    });
   };
 
   lexy.backUp = function () {
