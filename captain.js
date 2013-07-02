@@ -10,7 +10,7 @@ var classes = {},
     ids = {},
     allTokens = [],
     count = 0;
-    
+
 var searchLexer = new Lexer(),
     searchTokens = [],
     matches = 0;
@@ -19,7 +19,7 @@ var searchLexer = new Lexer(),
 var searchtime = function () {
   count++;
   if (count === 2) {
-    
+
     var matches = util.searchForTokenSequence(searchTokens, allTokens);
 
     console.log(matches.length + ' MATCHES FOUND');
@@ -27,16 +27,16 @@ var searchtime = function () {
   }
 };
 
-var lexer = new Lexer();
+var lexer = Lexer();
 
 lexer.on('lexerToken', function (token) {
   allTokens.push(token);
-  if (process.argv[3] !== "-s") {
+  //if (process.argv[3] === "-s") {
     console.log(token);
-  }
+  //}
 });
 
-lexer.on('finished', function () {
+lexer.on('finish', function () {
   if (process.argv[3] === "-s") {
     searchtime();
   }
@@ -45,24 +45,9 @@ lexer.on('finished', function () {
 //GO GO GO!!!
 
 var file = process.argv[2] || "sample.css";
-fs.readFile(file, 'utf8', function (err,data) {
-  if (err) {
-    return console.log(err);
-  }
-  lexer.begin(data);
-});
 
-if (process.argv[3] === "-s") {
-  
-  searchLexer.on('lexerToken', function (token) {
-    searchTokens.push(token);
-  });
-  searchLexer.on('finished', function () {
-    console.log('SEARCH STRING LEXED AS \n');
-    console.log(searchTokens);
-    console.log('\n----------------------\n');
-    searchtime();
-  });
-  searchLexer.begin(process.argv[4]);
-}
+var fileStream = fs.createReadStream(file);
+fileStream.pipe(lexer);
+
+
 

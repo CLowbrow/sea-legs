@@ -15,19 +15,30 @@ var isMatch = function (string, tokens, func) {
     lexedTokens.push(token);
   });
 
-  lexer.on('finished', function () {
+  lexer.on('finish', function () {
     func(sameTokens(tokens, lexedTokens));
   });
 
-  lexer.begin(string);
+  if (typeof string === 'string') {
+    lexer.write(string);
+  } else {
+    for (var i = 0; i < string.length; i++) {
+      lexer.write(string[i]);
+    };
+  }
+  lexer.end();
 };
 
-test("match two classnames", function (t) {
-  var testString = ".one .two",
+test("two class names and a style", function (t) {
+  var testString = ".one .two { display: none; }",
       expectedResult = [
         { type: 'className', value: '.one' },
         { type: 'descendant', value: ' ' },
-        { type: 'className', value: '.two' }
+        { type: 'className', value: '.two' },
+        { type: 'openBrace', value: '{' },
+        { type: 'declaration', value: 'display: none' },
+        { type: 'semicolon', value: ';' },
+        { type: 'closeBrace', value: '}' }
       ];
 
   isMatch(testString, expectedResult, function (match) {
@@ -37,12 +48,35 @@ test("match two classnames", function (t) {
 
 });
 
-test("deny two classnames", function (t) {
-  var testString = ".one .three",
+test("can accept data in multiple chunks", function (t) {
+  var testString = [".one .two", " { display: none; }"],
       expectedResult = [
         { type: 'className', value: '.one' },
         { type: 'descendant', value: ' ' },
-        { type: 'className', value: '.two' }
+        { type: 'className', value: '.two' },
+        { type: 'openBrace', value: '{' },
+        { type: 'declaration', value: 'display: none' },
+        { type: 'semicolon', value: ';' },
+        { type: 'closeBrace', value: '}' }
+      ];
+
+  isMatch(testString, expectedResult, function (match) {
+    t.ok(match, testString);
+    t.end();
+  });
+
+});
+
+test("deny two classnames and a style", function (t) {
+  var testString = ".one .three { display: none; }",
+      expectedResult = [
+        { type: 'className', value: '.one' },
+        { type: 'descendant', value: ' ' },
+        { type: 'className', value: '.two' },
+        { type: 'openBrace', value: '{' },
+        { type: 'declaration', value: 'display: none' },
+        { type: 'semicolon', value: ';' },
+        { type: 'closeBrace', value: '}' }
       ];
 
   isMatch(testString, expectedResult, function (match) {
@@ -53,7 +87,7 @@ test("deny two classnames", function (t) {
 });
 
 test("match a list of selectors separated by commas", function (t) {
-  var testString = ".selector-one #what, .selector-two #what, .selector-three #what",
+  var testString = ".selector-one #what, .selector-two #what, .selector-three #what { }",
       expectedResult = [ { type: 'className', value: '.selector-one' },
         { type: 'descendant', value: ' ' },
         { type: 'idName', value: '#what' },
@@ -64,7 +98,9 @@ test("match a list of selectors separated by commas", function (t) {
         { type: 'comma', value: ',' },
         { type: 'className', value: '.selector-three' },
         { type: 'descendant', value: ' ' },
-        { type: 'idName', value: '#what' }
+        { type: 'idName', value: '#what' },
+        { type: 'openBrace', value: '{' },
+        { type: 'closeBrace', value: '}' }
       ];
 
   isMatch(testString, expectedResult, function (match) {
@@ -91,13 +127,15 @@ test("match an import statement", function (t) {
 });
 
 test("match a selector with an attribute", function (t) {
-  var testString = '*[langl="en"]',
+  var testString = '*[langl="en"] { }',
       expectedResult = [ { type: 'selector', value: '*' },
         { type: 'openBracket', value: '[' },
         { type: 'attribute', value: 'langl' },
         { type: 'attributeComparison', value: '=' },
         { type: 'attributeValue', value: '"en"' },
-        { type: 'closeBracket', value: ']' }
+        { type: 'closeBracket', value: ']' },
+        { type: 'openBrace', value: '{' },
+        { type: 'closeBrace', value: '}' }
       ];
 
   isMatch(testString, expectedResult, function (match) {

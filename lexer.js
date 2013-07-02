@@ -9,9 +9,22 @@ var Lexer = function () {
   var lexy = Writable();
   lexy.inputArr = '';
   lexy.pos = 0;
+  var cached = false;
+  var started = false;
+  var cachedCallback = function () {
+    console.log('something broke!');
+  }
 
   lexy._write = function (chunk, enc, next) {
-    lexy.inputArr += chunk;
+    lexy.inputArr += chunk.toString();
+    if (cached) {
+      lexy.next(cachedCallback);
+      cached = false;
+    }
+    if(!started) {
+      states.lexStatement(lexy, done);
+      started = true;
+    }
     next();
   };
 
@@ -27,10 +40,15 @@ var Lexer = function () {
     }
   };
 
-  lexy.next = function () {
+  lexy.next = function (callback) {
     var rune = lexy.inputArr.charAt(lexy.pos);
-    lexy.pos++;
-    return rune;
+    if (rune) {
+      lexy.pos++;
+      callback(rune);
+    } else {
+      cached = true;
+      cachedCallback = callback;
+    }
   };
 
   lexy.backUp = function () {
@@ -42,70 +60,57 @@ var Lexer = function () {
     lexy.pos = 0;
   };
 
-  lexy.backup = function () {
-    lexy.pos -= 1;
-  };
-
   lexy.rewind = function () {
     lexy.pos = 0;
   }
 
-  lexy.peek = function () {
-    return lexy.inputArr.charAt(lexy.pos);
+  lexy.peek = function (callback) {
+    lexy.next(function (token) {
+      lexy.backUp();
+      callback(token);
+    })
   };
 
-  lexy.acceptMany = function (string) {
-    var next = lexy.next();
-    while (next !== '') {
-      if (string.toLowerCase().indexOf(next.toLowerCase()) < 0) {
-        lexy.backup();
-        break;
+  lexy.acceptMany = function (string, done) {
+    lexy.next(function (next) {
+      if (next === '' || string.toLowerCase().indexOf(next.toLowerCase()) < 0) {
+        lexy.backUp();
+        done();
+      } else {
+        lexy.acceptMany(string, done);
       }
-      next = lexy.next();
-    }
-    if(next === '') {
-      lexy.backup();
-    }
+    });
   };
 
-  lexy.acceptUntil = function (string) {
-    var next = lexy.next();
-    while (next !== '') {
-      if (string.toLowerCase().indexOf(next.toLowerCase()) >= 0) {
-        lexy.backup();
-        break;
+  lexy.acceptUntil = function (string, done) {
+    lexy.next(function (next) {
+      if (next === '' || string.toLowerCase().indexOf(next.toLowerCase()) >= 0) {
+        lexy.backUp();
+        done();
+      } else {
+        lexy.acceptUntil(string, done);
       }
-      next = lexy.next();
-    }
-    if(next === '') {
-      lexy.backup();
-    }
-  };
+    });
 
-  lexy.ignoreMany = function (string) {
-    lexy.acceptMany(string);
-    lexy.ignore()
+  }
+
+  lexy.ignoreMany = function (string, done) {
+    lexy.acceptMany(string, function () {
+      lexy.ignore()
+      done();
+    });
   };
 
   /* This is the engine. Each state function returns the next state function,
   or undefined if we have run out of file. */
 
-
-  var run = function () {
-    var state = states.lexStatement;
-    while (state) {
-      state = state(lexy);
+  var done = function (nextState, finished) {
+    if(finished) {
+      lexy.emit('finished');
+    } else {
+      nextState(lexy, done);
     }
-    //we are done parsing. tell the consumer.
-    lexy.emit('finished');
-  };
-
-  lexy.begin = function (string) {
-    console.log('running');
-    var data = string;
-    lexy.inputArr = data;
-    run();
-  };
+  }
 
   return lexy;
 };

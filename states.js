@@ -28,202 +28,243 @@ var inSet = function (needle, haystack) {
 };
 
 var states = {
-  lexStatement: function (lexer) {
-    //TODO: this function is really weird because it backtracks all over the place.
-    lexer.ignoreMany(' \n');
+  lexStatement: function (lexer, done) {
+    function decide (lexer, done) {
+      lexer.next(function (next) {
+        switch (next) {
+          case tokens.openBrace:
+            lexer.rewind();
+            done(states.lexSelector);
+            return;
 
-    //get the first thing
-    var next = lexer.peek();
-    console.log(next);
-    while (next !== '') {
-      switch (next) {
-        case tokens.openBrace:
-          lexer.rewind();
-          return states.lexSelector;
+          case tokens.atStart:
+            lexer.backUp();
+            done(states.lexAt);
+            return;
 
-        case tokens.atStart:
-          return states.lexAt;
+          case tokens.semicolon:
+            lexer.backUp();
+            lexer.emitToken('declaration');
+            done(states.lexSemicolon);
+            return;
 
-        case tokens.semicolon:
-          lexer.emitToken('declaration');
-          return states.lexSemicolon;
-
-        case tokens.closeBrace:
-          lexer.emitToken('declaration');
-          return states.lexCloseBrace;
-      }
-      //increment stuff
-      next = lexer.next();
+          case tokens.closeBrace:
+            lexer.backUp();
+            lexer.emitToken('declaration');
+            done(states.lexCloseBrace);
+            return;
+        }
+        decide(lexer, done);
+      });
     }
-    lexer.rewind();
-    return states.lexSelector;
-  },
-  lexOpenBrace: function (lexer) {
-    lexer.next();
-    lexer.emitToken('openBrace');
-    return states.lexStatement;
-  },
-  lexCloseBrace: function (lexer) {
-    lexer.next();
-    lexer.emitToken('closeBrace');
-    return states.lexStatement;
-  },
-  lexAt: function (lexer) {
-    lexer.next();
-    lexer.emitToken('@');
-    return states.lexAtRule;
-  },
-  lexAtRule: function (lexer) {
-    lexer.acceptUntil(' ');
-    lexer.emitToken('atRule');
-    return states.lexAtBlock;
-  },
-  lexAtBlock: function (lexer) {
-    lexer.ignoreMany(' \n');
-    while (true) {
-      switch (lexer.next()) {
-        case tokens.semicolon:
-          lexer.backUp();
-          lexer.emitToken('atBlock');
-          return states.lexSemicolon;
 
-        case tokens.openBrace:
-          lexer.backUp();
-          lexer.emitToken('atBlock');
-          return states.lexOpenBrace;
+    lexer.ignoreMany(' \n', function () {
+      decide(lexer, done);
+    });
+  },
+  lexOpenBrace: function (lexer, done) {
+    lexer.next(function () {
+      lexer.emitToken('openBrace');
+      done(states.lexStatement);
+    });
+  },
+  lexCloseBrace: function (lexer, done) {
+    lexer.next(function () {
+      lexer.emitToken('closeBrace');
+      done(states.lexStatement);
+    });
+  },
+  lexAt: function (lexer, done) {
+    lexer.next(function () {
+      lexer.emitToken('@');
+      done(states.lexAtRule);
+    });
+  },
+  lexAtRule: function (lexer, done) {
+    lexer.acceptUntil(' ', function () {
+      lexer.emitToken('atRule');
+      done(states.lexAtBlock);
+    });
+  },
+  lexAtBlock: function (lexer, done) {
+    function decide(lexer, done) {
+      lexer.next(function (token) {
+        switch (token) {
+          case tokens.semicolon:
+            lexer.backUp();
+            lexer.emitToken('atBlock');
+            return done(states.lexSemicolon);
 
-        case '':
-          return undefined;
-      }
+          case tokens.openBrace:
+            lexer.backUp();
+            lexer.emitToken('atBlock');
+            return done(states.lexOpenBrace);
+        }
+        decide(lexer, done);
+      });
     }
+    lexer.ignoreMany(' \n', function () {
+      decide(lexer, done);
+    });
   },
-  lexSemicolon: function (lexer) {
-    lexer.next();
-    lexer.emitToken('semicolon');
-    return states.lexStatement;
+  lexSemicolon: function (lexer, done) {
+    lexer.next(function (token) {
+      lexer.emitToken('semicolon');
+      done(states.lexStatement);
+    });
   },
-  lexSelector: function (lexer) {
-    lexer.acceptMany('abcdefghijklmnopqrstuvxyz=~:*|1234567890-_()');
-    lexer.emitToken('selector');
-    switch (lexer.peek()) {
-      case tokens.idPrefix:
-        return states.lexId;
+  lexSelector: function (lexer, done) {
+    lexer.acceptMany('abcdefghijklmnopqrstuvxyz=~:*|1234567890-_()', function () {
+      lexer.emitToken('selector');
+      lexer.peek(function (token) {
+        switch (token) {
+          case tokens.idPrefix:
+            return done(states.lexId);
 
-      case tokens.classPrefix:
-        return states.lexClass;
+          case tokens.classPrefix:
+            return done(states.lexClass);
 
-      case tokens.openBrace:
-        return states.lexOpenBrace;
+          case tokens.openBrace:
+            return done(states.lexOpenBrace);
 
-      case tokens.openBracket:
-        return states.lexOpenBracket;
+          case tokens.openBracket:
+            return done(states.lexOpenBracket);
 
-      case tokens.comma:
-        return states.lexComma;
+          case tokens.comma:
+            return done(states.lexComma);
 
-      case tokens.descendant:
-        return states.lexDescendant;
+          case tokens.descendant:
+            return done(states.lexDescendant);
 
-      case tokens.sibling:
-        return states.lexSiblingOperator;
+          case tokens.sibling:
+            return done(states.lexSiblingOperator);
 
-      case tokens.child:
-        return states.lexChildOperator;
+          case tokens.child:
+            return done(states.lexChildOperator);
 
-      case '\n':
-        return states.lexDescendant;
+          case '\n':
+            return done(states.lexDescendant);
 
-      case '':
-        return undefined;
-    }
+          case '':
+            return done(false, true);
+        }
+      });
+    });
   },
-  lexId: function (lexer) {
-    lexer.next();
-    lexer.acceptMany('abcdefghijklmnopqrstuvwxyz01234567890-_');
-    lexer.emitToken('idName');
-    return states.lexSelector;
+  lexId: function (lexer, done) {
+    lexer.next(function () {
+      lexer.acceptMany('abcdefghijklmnopqrstuvwxyz01234567890-_', function () {
+        lexer.emitToken('idName');
+      });
+    done(states.lexSelector);
+  });
   },
-  lexClass: function (lexer) {
-    lexer.next();
-    lexer.acceptMany('abcdefghijklmnopqrstuvwxyz01234567890-_');
-    lexer.emitToken('className');
-    return states.lexSelector;
+  lexClass: function (lexer, done) {
+    lexer.next(function () {
+      lexer.acceptMany('abcdefghijklmnopqrstuvwxyz01234567890-_', function () {
+        lexer.emitToken('className');
+        done(states.lexSelector);
+      });
+    });
   },
-  lexComma: function (lexer) {
-    lexer.next();
-    lexer.emitToken('comma');
-    return states.lexStatement;
+  lexComma: function (lexer, done) {
+    lexer.next(function () {
+      lexer.emitToken('comma');
+      done(states.lexStatement);
+    });
   },
-  lexDescendant: function (lexer) {
-    while (true) {
-      var token = lexer.next();
-      //look ahead
-      //TODO: this is too complicated. lexDescendant should not have to invalidate itself.
+  lexDescendant: function (lexer, done) {
+    lexer.next(function (token) {
       if (token === tokens.openBrace) {
         lexer.backUp();
-        return states.lexOpenBrace;
+        lexer.ignore();
+        return done(states.lexOpenBrace);
       } else if (token === tokens.comma) {
         lexer.backUp();
-        return states.lexComma;
+        lexer.ignore();
+        return done(states.lexComma);
       } else if (token === tokens.sibling) {
         lexer.backUp();
-        return states.lexSiblingOperator;
+        lexer.ignore();
+        return done(states.lexSiblingOperator);
       } else if (token === tokens.child) {
         lexer.backUp();
-        return states.lexChildOperator;
+        lexer.ignore();
+        return done(states.lexChildOperator);
       } else if (!isBlank(token)) {
         lexer.backUp();
         lexer.emitToken('descendant');
-        return states.lexSelector;
+        return done(states.lexSelector);
       }
-      if (token === '') { return undefined; }
-    }
+      states.lexDescendant(lexer, done);
+    });
   },
-  lexChildOperator: function (lexer) {
-    lexer.next();
-    lexer.emitToken('childOperator');
-    return states.lexStatement;
+  lexChildOperator: function (lexer, done) {
+    lexer.next(function () {
+      lexer.emitToken('childOperator');
+      done(states.lexStatement);
+    });
   },
-  lexSiblingOperator: function (lexer) {
-    lexer.next();
-    lexer.emitToken('siblingOperator');
-    return states.lexStatement;
+  lexSiblingOperator: function (lexer, done) {
+    lexer.next(function () {
+      lexer.emitToken('siblingOperator');
+      done(states.lexStatement);
+    });
   },
-  lexOpenBracket: function (lexer) {
-    lexer.next();
-    lexer.emitToken('openBracket');
-    return states.lexAttribute;
+  lexOpenBracket: function (lexer, done) {
+    lexer.next(function () {
+      lexer.emitToken('openBracket');
+      done(states.lexAttribute);
+    });
   },
-  lexCloseBracket: function (lexer) {
-    lexer.next();
-    lexer.emitToken('closeBracket');
-    return states.lexStatement;
+  lexCloseBracket: function (lexer, done) {
+    lexer.next(function (token) {
+      lexer.emitToken('closeBracket');
+      done(states.lexStatement);
+    });
   },
-  lexAttribute: function (lexer) {
-    lexer.acceptUntil('=~^$*|] ');
-    if(lexer.peek() === tokens.closeBracket) {
-      lexer.emitToken('attribute');
-      return states.lexCloseBracket;
-    } else {
-      lexer.emitToken('attribute');
-      return states.lexAttributeComparison;
-    }
+  lexAttribute: function (lexer, done) {
+    lexer.acceptUntil('=~^$*|] ', function () {
+      lexer.peek(function (token) {
+        if(token === tokens.closeBracket) {
+          lexer.emitToken('attribute');
+          done(states.lexCloseBracket);
+        } else {
+          lexer.emitToken('attribute');
+          done(states.lexAttributeComparison);
+        }
+      })
+    });
+
   },
-  lexAttributeComparison: function (lexer) {
-    lexer.ignoreMany(' \n');
-    //one or two characters
-    if (lexer.next() !== '=') {
-      lexer.next();
-    }
-    lexer.emitToken('attributeComparison');
-    return states.lexAttributeValue;
+  lexAttributeComparison: function (lexer, done) {
+    lexer.ignoreMany(' \n', function () {
+      //one or two characters
+      lexer.next(function (token) {
+        if(token !== '=') {
+          lexer.next(function () {
+            lexer.emitToken('attributeComparison');
+            done(states.lexAttributeValue);
+          })
+        } else {
+          lexer.emitToken('attributeComparison');
+          done(states.lexAttributeValue);
+        }
+      })
+      if (lexer.next() !== '=') {
+        lexer.next();
+      }
+    });
   },
-  lexAttributeValue: function (lexer) {
-    lexer.ignoreMany(' \n');
-    lexer.acceptUntil(tokens.closeBracket);
-    lexer.emitToken('attributeValue');
-    return states.lexCloseBracket;
-  }
+  lexAttributeValue: function (lexer, done) {
+    lexer.ignoreMany(' \n', function () {
+      lexer.acceptUntil(tokens.closeBracket, function () {
+        lexer.emitToken('attributeValue');
+        done(states.lexCloseBracket);
+      });
+    });
+  },
+  initial: this.lexStatement
 
 };
 
